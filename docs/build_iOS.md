@@ -41,6 +41,6 @@ In Xcode project settings in General tab, add libsrt to **Linked Frameworks and 
 Click plus sign in **Embedded binaries** section and choose Frameworks/libsrt.1.dylib
 
 In **Build settings** tab find **Header Search Paths** setting  
-and add paths to SRT library sources (you should add srt, srt/common and srt/common directories). 
+and add paths to SRT library sources (you should add srt, srt/common and srt/srtcore directories). 
  
 
