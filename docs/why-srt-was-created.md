@@ -1,31 +1,31 @@
-Some people have asked us why we're using the UDT library within our SRT protocol. Actually, some people claimed that SRT is just a slightly modified version of UDT and that UDT is known to be useless for live video transmission. Guess what, the latter is true. UDT has been designed for high throughput file transmission over public networks. However, SRT is far from being a slightly modified version of UDT. I'll get into the details, but will start with a little bit of history.
+SRT 프로토콜에서 UDT 라이브러리를 사용하는 이유를 묻는 사람들이 있습니다. 사실, 일부 사람들은 SRT가 UDT의 약간 수정 된 버전이며 UDT가 라이브 비디오 전송에는 쓸모없는 것으로 알려져 있다고 주장했습니다. 맞춰봐, 후자는 사실이다. UDT는 공용 네트워크를 통한 높은 처리량의 파일 전송을 위해 설계되었습니다. 그러나 SRT는 UDT의 약간 수정 된 버전이 아닙니다. 나는 세부 사항으로 들어갈 것이지만, 약간의 역사로 시작할 것입니다.
 
-Haivision has always been known for lowest latency video transmission across IP based networks, typically MPEG-TS unicast or multicast streams over the UDP protocol. This solution is perfect for protected networks and if packet loss became a problem, enabling forward error correction (FEC) fixed it.
-At some point we were getting questioned whether it would be possible to achieve the same latency between customer sites in different locations, between different cities, countries or even continents. Of course it's possible with satellite links or dedicated MPLS networks, but those are quite expensive solutions, so people wanted to use their public internet connectivity instead. While it's possible to go with FEC in some cases, that's not a reliable solution, as the amount of recoverable packet loss is limited, unless you accept a significant amount of bandwidth overhead.
+Haivision은 IP 기반 네트워크 (일반적으로 UDP 프로토콜을 통한 MPEG-TS 유니 캐스트 또는 멀티 캐스트 스트림)에서 가장 낮은 대기 시간의 비디오 전송으로 항상 알려져 왔습니다. 이 솔루션은 보호 된 네트워크에 이상적이며 패킷 손실이 문제가되는 경우 FEC (forward error correction)를 사용하면 해결됩니다.
 
-After evaluating the pros and cons of different third party solutions, we found that none satisfied all our requirements. Particularly the lack of insight into the underlying technology drove us to the decision to develop our own solution, which we then could deeply integrate into products. That way, it would become the "glue" that enables us to transmit streams between all our different products, locally or across far distances, while maintaining our low latency proposition.
+어떤 시점에서 우리는 다른 지역, 다른 도시, 국가 또는 심지어 대륙 간의 고객 사이트간에 동일한 대기 시간을 달성 할 수 있는지 의문을 제기하고있었습니다. 물론 위성 링크 나 전용 MPLS 네트워크에서도 가능하지만 그 값 비싼 솔루션이므로 사람들은 공용 인터넷 연결을 대신 사용하려고했습니다. 경우에 따라 FEC를 사용할 수도 있지만 상당한 대역폭 오버 헤드를 허용하지 않으면 복구 가능한 패킷 손실의 양이 제한되어 있으므로 신뢰할 수있는 솔루션은 아닙니다.
 
-There were a few of possible choices to consider:
-- The TCP based approach. Problem for live streaming: Network congestion, too slow packet loss recovery.
-- The UDP based Approach. General problem: Packet loss, jitter, packet re-ordering, delay
-- Reliable UDP. Adds framing and selective retransmit.
+다른 제 3 자 솔루션의 장단점을 평가 한 결과 우리는 모든 요구 사항을 충족시키지 못함을 확인했습니다. 특히 기본 기술에 대한 통찰력이 부족하여 우리 자신의 솔루션을 개발하려는 결정을 내 렸습니다. 그런 다음 우리는 제품에 깊이 통합 할 수있었습니다. 그렇게하면 짧은 지연 시간을 유지하면서 로컬 또는 멀리 떨어진 모든 다른 제품간에 스트림을 전송할 수있게 해주는 "접착제"가됩니다.
 
-Having had a history with UDT for data transmission, I remembered its packet loss recovery abilities and just started playing with it. Though not designed for live streaming at all, it kind of worked when using really big buffers. I handed it over to one of our extremely talented networking guys in the embedded software team (thanks, Jean!) and asked him whether he'd be able to make this a low latency live streaming solution. I didn't hear anything back for quite a while and had almost lost my hope, when he contacted me to tell me he had to rewrite the whole packet retransmission functionality in order to be able to react to packet loss immediately when it happens and that he added an encryption protocol, which he had specified and implemented for other use cases before. Nice :-)
+고려해야 할 몇 가지 가능한 선택 사항이있었습니다.:
+- TCP 기반 접근법. 실시간 스트리밍 문제 : 네트워크 정체, 너무 느린 패킷 손실 복구.
+- UDP 기반 접근법. 일반적인 문제 : 패킷 손실, 지터, 패킷 재주문, 지연
+- 신뢰할 수있는 UDP. 프레이밍 및 선택적 재전송을 추가합니다.
 
-We started testing sending low latency live streams back and forth between Germany and Montreal and it worked! However, we didn't get the latency down to a level we had hoped to achieve. The problem we faced turned out to be timing related (as always in media ...).
+데이터 전송을 위해 UDT의 역사가 있었기 때문에 패킷 손실 복구 능력을 기억하고 막 재생하기 시작했습니다. 실시간 스트리밍을 위해 설계된 것은 아니지만 실제로는 큰 버퍼를 사용할 때 일했습니다. 임베디드 소프트웨어 팀의 뛰어난 재능있는 네트워킹 전문가 중 한 명에게 넘겨주었습니다 (Jean! 감사합니다).이 솔루션은 지연 시간이 적은 라이브 스트리밍 솔루션을 만들 수 있는지 여부를 묻습니다. 나는 꽤 오래 동안 아무 것도 듣지 못했고 그가 희망을 잃었을 때 그가 패킷 손실에 즉시 대응할 수 있도록 전체 패킷 재전송 기능을 다시 작성해야한다는 것을 알려주기 위해 저에게 연락했을 때 저의 희망을 거의 잃었습니다. 그는 이전에 다른 유스 케이스에 대해 지정하고 구현 한 암호화 프로토콜을 추가했습니다. 좋은 :-)
 
-What happened was this:
+우리는 낮은 대기 시간의 라이브 스트림을 독일과 몬트리올 사이를 오가며 테스트하기 시작했습니다. 그러나 우리는 기대했던 수준까지 레이턴시를 얻지 못했습니다. 우리가 직면 한 문제는 타이밍 관련 (항상 미디어에서와 같이 ...) 것으로 판명되었습니다.
+
+무슨 일이 있었니?:
 ![Bad Signal](images/SRT_Transmission_Bad_Signal.png)
 
-The characteristics of the original stream on the source network got completely changed by the transmission over the public internet. The reasons are delay, jitter, packet loss and its recovery on the dirty network. The signal on the receiver side had completely different characteristics, which led to problems with decoding, as the audio and video decoders didn't get the packets at the expected times. This can be handled by buffering, but that's not what you want in low latency setups.
+원본 네트워크의 원본 스트림의 특성은 공용 인터넷을 통한 전송으로 완전히 변경되었습니다. 지연, 지터, 패킷 손실 및 더티 네트워크에서의 복구가 원인입니다. 수신기 측의 신호는 완전히 다른 특성을 가지고 있었기 때문에 오디오 및 비디오 디코더가 예상 된 시간에 패킷을 얻지 못하여 디코딩 문제가 발생했습니다. 이것은 버퍼링으로 처리 할 수 있지만 저 지연 설정에서 원하는 것은 아닙니다.
 
-The solution was to come up with a mechanism that recreates the signal characteristics on the receiver side. That way we were able to dramatically reduce the buffering. This functionality is part of the SRT protocol itself, so once the data comes out of the SRT protocol on the receiver side, the stream characteristics have been properly recovered.
+해결책은 수신기 측에서 신호 특성을 재현하는 메커니즘을 고안하는 것이 었습니다. 그렇게하면 우리는 버퍼링을 크게 줄일 수있었습니다. 이 기능은 SRT 프로토콜 자체의 일부이므로 수신 측의 SRT 프로토콜에서 데이터가 나오면 스트림 특성이 제대로 복구됩니다.
 
-The result is a happy decoder:
+결과는 행복한 디코더입니다.:
 ![Good Signal](images/SRT_History_Good_Signal.png)
 
-We publicly showed SRT (Secure Reliable Transport) the first time at IBC 2013, where we were the only ones to show an HEVC encoded live stream, camera to glass, from a hotel suite outside the exhibition directly onto the show floor, using the network provided by the RAI. Everybody who has been at such a show before knows how bad these networks can get. And the network was bad. So bad that we expected the whole demo to fall apart, having pulled the first trial version of SRT directly from the labs. The excitement was huge, when we realized that the transmission still worked fine!
-
-Since then, we added SRT to all our products, enabling us to send high quality, low latency video from and to any endpoint, including our mobile applications. Of course there were improvements to be made and the protocol matured on the way. Until NAB 2017, where we announced that SRT is now Open Source.
+우리는 공개적으로 SRT(Secure Reliable Transport)를 공개적으로 보여주었습니다. IBC 2013에서 우리는 HEVC로 인코딩 된 라이브 스트림 (카메라에서 유리까지)을 전시회 밖에있는 호텔 스위트에서 쇼룸으로 직접 보여줄 수있는 유일한 회사였습니다. RAI가 제공 한 그러한 쇼에 있었던 모든 사람들은이 네트워크가 얼마나 나쁜지 알 수 있습니다. 그리고 네트워크는 나빴습니다. 우리가 전체 데모가 떨어져 나올 것을 기대했던 것이 좋지 않아 SRT의 첫 번째 시험 버전을 실험실에서 직접 가져 왔습니다. 흥분은 거대했습니다. 우리는 변속기가 여전히 잘 작동 함을 깨달았습니다!
+그 이후로 우리는 우리의 모든 제품에 SRT를 추가함으로써 모바일 어플리케이션을 포함한 모든 엔드 포인트에서 고품질의 짧은 대기 시간의 비디오를 전송할 수있게되었습니다. 물론 개선이 이루어졌고 프로토콜은 성숙 단계에 접어 들었습니다. NAB 2017까지 우리는 SRT가 현재 오픈 소스임을 발표했습니다.
 
 Marc
